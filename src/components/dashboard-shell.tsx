@@ -122,6 +122,7 @@ export function DashboardShell({
             width={82}
             height={36}
             priority
+            unoptimized
             style={{ objectFit: "contain" }}
           />
         </div>
