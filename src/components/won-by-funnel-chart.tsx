@@ -15,8 +15,6 @@ import { formatCurrency, formatMonthLabel, formatNumber } from "@/lib/format";
 
 type WonByFunnelChartProps = {
   data: WonByFunnelResponse;
-  onSelectMonth: (month: string) => void;
-  selectedMonth: string;
 };
 
 type ChartRow = {
@@ -37,11 +35,7 @@ const PIPELINE_COLORS = [
   "#b91c1c",
 ];
 
-export function WonByFunnelChart({
-  data,
-  onSelectMonth,
-  selectedMonth,
-}: WonByFunnelChartProps) {
+export function WonByFunnelChart({ data }: WonByFunnelChartProps) {
   const pipelineOrder = Array.from(
     new Map(data.items.map((item) => [item.pipeline_id, item.pipeline_name])),
   ).map(([id, name]) => ({ id, name }));
@@ -52,87 +46,66 @@ export function WonByFunnelChart({
       label: formatMonthLabel(item.month),
       total: 0,
     };
-
     const numericAmount = Number(item.won_amount);
     current[item.pipeline_id] = numericAmount;
     current.total += Number.isFinite(numericAmount) ? numericAmount : 0;
     acc.set(item.month, current);
-
     return acc;
   }, new Map());
 
   const chartData = Array.from(rows.values());
 
   return (
-    <div className="chart-shell">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Won Revenue by Month</p>
-          <h2>Last 12 closed months by sales funnel</h2>
-        </div>
-        <p className="section-note">
-          Select a month from the chart to update the funnel drill-down panels.
-        </p>
-      </div>
-
-      <div className="chart-wrap">
-        <ResponsiveContainer width="100%" height={380}>
-          <BarChart data={chartData} barCategoryGap={16}>
-            <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#d4d9d1" />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => formatNumber(value)}
-            />
-            <Tooltip
-              formatter={(value, name) => [
-                formatCurrency(typeof value === "number" ? value : Number(value ?? 0)),
-                String(name),
-              ]}
-              labelFormatter={(label) => `Month: ${label}`}
-              contentStyle={{
-                borderRadius: 16,
-                border: "1px solid #d9d7cd",
-                backgroundColor: "#fffdf6",
-              }}
-            />
-            {pipelineOrder.map((pipeline, index) => (
-              <Bar
-                key={pipeline.id}
-                dataKey={pipeline.id}
-                name={pipeline.name}
-                stackId="won"
-                fill={PIPELINE_COLORS[index % PIPELINE_COLORS.length]}
-                radius={index === pipelineOrder.length - 1 ? [6, 6, 0, 0] : 0}
-                onClick={(state) => {
-                  if (state?.payload?.month) {
-                    onSelectMonth(String(state.payload.month));
-                  }
-                }}
-              />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="month-pills" role="tablist" aria-label="Months">
-        {chartData.map((row) => {
-          const isActive = row.month === selectedMonth;
-
-          return (
-            <button
-              key={row.month}
-              className={isActive ? "month-pill active" : "month-pill"}
-              onClick={() => onSelectMonth(row.month)}
-              type="button"
-            >
-              <span>{row.label}</span>
-              <strong>{formatCurrency(row.total)}</strong>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart
+        data={chartData}
+        barCategoryGap={10}
+        margin={{ top: 4, right: 8, bottom: 0, left: 0 }}
+      >
+        <CartesianGrid
+          strokeDasharray="4 4"
+          vertical={false}
+          stroke="rgba(31,40,26,0.1)"
+        />
+        <XAxis
+          dataKey="label"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 11 }}
+        />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(v) => formatNumber(v)}
+          tick={{ fontSize: 10 }}
+          width={64}
+        />
+        <Tooltip
+          formatter={(value, name) => [
+            formatCurrency(
+              typeof value === "number" ? value : Number(value ?? 0),
+            ),
+            String(name),
+          ]}
+          labelFormatter={(label) => `Mês: ${label}`}
+          contentStyle={{
+            borderRadius: 12,
+            border: "1px solid rgba(31,40,26,0.12)",
+            backgroundColor: "#fffdf6",
+            fontSize: "12px",
+          }}
+        />
+        {pipelineOrder.map((pipeline, index) => (
+          <Bar
+            key={pipeline.id}
+            dataKey={pipeline.id}
+            name={pipeline.name}
+            stackId="won"
+            fill={PIPELINE_COLORS[index % PIPELINE_COLORS.length]}
+            radius={index === pipelineOrder.length - 1 ? [4, 4, 0, 0] : 0}
+          />
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
   );
 }

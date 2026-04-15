@@ -49,6 +49,26 @@ export type ProductBreakdownItem = {
   product_sales: string;
 };
 
+export type OngoingGroupItem = {
+  key: string;
+  label: string;
+  deal_count: number;
+  amount: string;
+};
+
+export type OngoingPipelineSummary = {
+  pipeline_id: string;
+  pipeline_name: string;
+  deal_count: number;
+  amount: string;
+  groups: OngoingGroupItem[];
+};
+
+export type OngoingBreakdownResponse = {
+  group_by: string;
+  items: OngoingPipelineSummary[];
+};
+
 export type PipelineMonthlyBreakdown = {
   pipeline_id: string;
   pipeline_name: string;

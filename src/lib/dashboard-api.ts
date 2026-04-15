@@ -1,4 +1,5 @@
 import {
+  OngoingBreakdownResponse,
   PipelineMonthlyBreakdown,
   PipelinesResponse,
   WonByFunnelResponse,
@@ -37,5 +38,11 @@ export function getPipelineMonthlyBreakdown(pipelineID: string, month?: string) 
   const monthQuery = month ? `?month=${encodeURIComponent(month)}` : "";
   return fetchJSON<PipelineMonthlyBreakdown>(
     `/api/v1/pipelines/${encodeURIComponent(pipelineID)}/monthly-breakdown${monthQuery}`,
+  );
+}
+
+export function getOngoingBreakdown(groupBy: string = "stage") {
+  return fetchJSON<OngoingBreakdownResponse>(
+    `/api/v1/dashboard/ongoing-breakdown?group_by=${encodeURIComponent(groupBy)}`,
   );
 }

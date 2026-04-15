@@ -1,9 +1,11 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import {
+  getOngoingBreakdown,
   getPipelineMonthlyBreakdown,
   getPipelines,
   getWonByFunnel,
 } from "@/lib/dashboard-api";
+import { currentMonthValue } from "@/lib/format";
 
 export default async function Home() {
   const [pipelinesResponse, wonByFunnel] = await Promise.all([
@@ -11,16 +13,23 @@ export default async function Home() {
     getWonByFunnel(),
   ]);
 
-  const initialPipeline = pipelinesResponse.items[0] ?? null;
-  const initialBreakdown = initialPipeline
-    ? await getPipelineMonthlyBreakdown(initialPipeline.id)
-    : null;
+  const currentMonth = currentMonthValue();
+
+  const [currentMonthBreakdowns, initialOngoing] = await Promise.all([
+    Promise.all(
+      pipelinesResponse.items.map((p) =>
+        getPipelineMonthlyBreakdown(p.id, currentMonth),
+      ),
+    ),
+    getOngoingBreakdown("stage"),
+  ]);
 
   return (
     <DashboardShell
       pipelines={pipelinesResponse.items}
       wonByFunnel={wonByFunnel}
-      initialBreakdown={initialBreakdown}
+      currentMonthBreakdowns={currentMonthBreakdowns}
+      initialOngoing={initialOngoing}
     />
   );
 }
