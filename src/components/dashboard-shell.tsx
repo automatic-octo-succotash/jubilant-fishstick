@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import {
   OngoingBreakdownResponse,
@@ -19,13 +20,31 @@ type DashboardShellProps = {
   initialOngoing: OngoingBreakdownResponse;
 };
 
-type GroupBy = "stage" | "owner" | "product";
+type GroupBy = "stage" | "owner" | "product" | "source" | "campaign" | "organization" | "contact";
+
+const GROUP_OPTIONS: GroupBy[] = [
+  "stage",
+  "owner",
+  "product",
+  "source",
+  "campaign",
+  "organization",
+  "contact",
+];
 
 const GROUP_LABELS: Record<GroupBy, string> = {
-  stage: "Por etapa",
-  owner: "Por responsável",
-  product: "Por produto",
+  stage:        "Etapa",
+  owner:        "Responsável",
+  product:      "Produto",
+  source:       "Origem",
+  campaign:     "Campanha",
+  organization: "Empresa",
+  contact:      "Contato",
 };
+
+// Auto-rotation: divide the worker refresh period evenly across all toggles.
+const REFRESH_RATE_MS = 5 * 60 * 1000;
+const ROTATION_INTERVAL_MS = Math.floor(REFRESH_RATE_MS / GROUP_OPTIONS.length);
 
 export function DashboardShell({
   pipelines,
@@ -37,20 +56,50 @@ export function DashboardShell({
   const [ongoing, setOngoing] = useState(initialOngoing);
   const [isPending, startTransition] = useTransition();
 
+  const isFirstRender = useRef(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const currentMonth = currentMonthBreakdowns[0]?.month ?? "";
 
-  function handleGroupByChange(next: GroupBy) {
-    if (next === groupBy) return;
-    setGroupBy(next);
+  // Fetch whenever groupBy changes, but skip the initial mount (data already loaded server-side).
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     startTransition(async () => {
       const res = await fetch(
-        `/api/dashboard/ongoing-breakdown?group_by=${encodeURIComponent(next)}`,
+        `/api/dashboard/ongoing-breakdown?group_by=${encodeURIComponent(groupBy)}`,
         { cache: "no-store" },
       );
       if (res.ok) {
         setOngoing((await res.json()) as OngoingBreakdownResponse);
       }
     });
+  }, [groupBy]);
+
+  // Auto-rotation: advance through toggles, reset timer on manual interaction.
+  function startRotation() {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setGroupBy((prev) => {
+        const idx = GROUP_OPTIONS.indexOf(prev);
+        return GROUP_OPTIONS[(idx + 1) % GROUP_OPTIONS.length];
+      });
+    }, ROTATION_INTERVAL_MS);
+  }
+
+  useEffect(() => {
+    startRotation();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleGroupByChange(next: GroupBy) {
+    if (next === groupBy) return;
+    setGroupBy(next);
+    startRotation(); // reset rotation timer on manual click
   }
 
   const breakdownMap = new Map(
@@ -66,7 +115,16 @@ export function DashboardShell({
   return (
     <div className="dashboard">
       <div className="top-bar">
-        <span className="top-bar-title">MLC Logística — Dashboard de Vendas</span>
+        <div className="top-bar-logo">
+          <Image
+            src="/logo.png"
+            alt="MLC Logística"
+            width={82}
+            height={36}
+            priority
+            style={{ objectFit: "contain" }}
+          />
+        </div>
         {lastSynced ? (
           <span className="top-bar-meta">
             Atualizado{" "}
@@ -101,7 +159,7 @@ export function DashboardShell({
         <div className="toggle-row">
           <span className="toggle-label">Em andamento</span>
           <div className="toggle-group" role="group" aria-label="Agrupar por">
-            {(["stage", "owner", "product"] as GroupBy[]).map((opt) => (
+            {GROUP_OPTIONS.map((opt) => (
               <button
                 key={opt}
                 type="button"

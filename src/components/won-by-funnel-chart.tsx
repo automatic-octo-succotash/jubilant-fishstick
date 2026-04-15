@@ -25,14 +25,14 @@ type ChartRow = {
 };
 
 const PIPELINE_COLORS = [
-  "#1f6feb",
-  "#fa8c16",
-  "#1a7f37",
-  "#e85aad",
-  "#c2410c",
-  "#0f766e",
-  "#7c3aed",
-  "#b91c1c",
+  "#E8611A",
+  "#2E6BA8",
+  "#3A7D44",
+  "#9B4DCA",
+  "#C44F0E",
+  "#0F7B72",
+  "#B5860D",
+  "#1C1E20",
 ];
 
 export function WonByFunnelChart({ data }: WonByFunnelChartProps) {
