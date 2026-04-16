@@ -80,19 +80,25 @@ export function WonByFunnelChart({ data }: WonByFunnelChartProps) {
           width={64}
         />
         <Tooltip
-          formatter={(value, name) => [
-            formatCurrency(
-              typeof value === "number" ? value : Number(value ?? 0),
-            ),
-            String(name),
-          ]}
-          labelFormatter={(label) => `Mês: ${label}`}
-          contentStyle={{
-            borderRadius: 0,
-            border: "1px solid #ccd0da",
-            backgroundColor: "#e6e9ef",
-            fontSize: "12px",
-            color: "#4c4f69",
+          content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null;
+            const ordered = pipelineOrder
+              .map((p, i) => {
+                const entry = payload.find((item) => item.dataKey === p.id);
+                return entry ? { ...entry, color: PIPELINE_COLORS[i % PIPELINE_COLORS.length] } : null;
+              })
+              .filter(Boolean);
+            return (
+              <div style={{ border: "1px solid #ccd0da", backgroundColor: "#e6e9ef", fontSize: "12px", color: "#4c4f69", padding: "8px 10px" }}>
+                <p style={{ marginBottom: 4 }}>Mês: {label}</p>
+                {ordered.map((entry) => (
+                  <p key={String(entry!.dataKey)} style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+                    <span style={{ color: entry!.color }}>● {String(entry!.name)}</span>
+                    <span>{formatCurrency(typeof entry!.value === "number" ? entry!.value : Number(entry!.value ?? 0))}</span>
+                  </p>
+                ))}
+              </div>
+            );
           }}
         />
         {pipelineOrder.map((pipeline, index) => (
