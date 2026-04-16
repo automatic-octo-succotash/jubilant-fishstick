@@ -24,15 +24,14 @@ type ChartRow = {
   [pipelineKey: string]: string | number;
 };
 
+// Catppuccin Latte: Red, Green, Yellow, Blue, Pink, Teal
 const PIPELINE_COLORS = [
-  "#E8611A",
-  "#2E6BA8",
-  "#3A7D44",
-  "#9B4DCA",
-  "#C44F0E",
-  "#0F7B72",
-  "#B5860D",
-  "#1C1E20",
+  "#d20f39",
+  "#40a02b",
+  "#df8e1d",
+  "#1e66f5",
+  "#ea76cb",
+  "#179299",
 ];
 
 export function WonByFunnelChart({ data }: WonByFunnelChartProps) {
@@ -65,19 +64,19 @@ export function WonByFunnelChart({ data }: WonByFunnelChartProps) {
         <CartesianGrid
           strokeDasharray="4 4"
           vertical={false}
-          stroke="rgba(31,40,26,0.1)"
+          stroke="#ccd0da"
         />
         <XAxis
           dataKey="label"
           tickLine={false}
           axisLine={false}
-          tick={{ fontSize: 11 }}
+          tick={{ fontSize: 11, fill: "#6c6f85" }}
         />
         <YAxis
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => formatNumber(v)}
-          tick={{ fontSize: 10 }}
+          tick={{ fontSize: 10, fill: "#6c6f85" }}
           width={64}
         />
         <Tooltip
@@ -89,10 +88,11 @@ export function WonByFunnelChart({ data }: WonByFunnelChartProps) {
           ]}
           labelFormatter={(label) => `Mês: ${label}`}
           contentStyle={{
-            borderRadius: 12,
-            border: "1px solid rgba(31,40,26,0.12)",
-            backgroundColor: "#fffdf6",
+            borderRadius: 0,
+            border: "1px solid #ccd0da",
+            backgroundColor: "#e6e9ef",
             fontSize: "12px",
+            color: "#4c4f69",
           }}
         />
         {pipelineOrder.map((pipeline, index) => (
@@ -102,7 +102,7 @@ export function WonByFunnelChart({ data }: WonByFunnelChartProps) {
             name={pipeline.name}
             stackId="won"
             fill={PIPELINE_COLORS[index % PIPELINE_COLORS.length]}
-            radius={index === pipelineOrder.length - 1 ? [4, 4, 0, 0] : 0}
+            radius={0}
           />
         ))}
       </BarChart>
